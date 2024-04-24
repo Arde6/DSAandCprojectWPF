@@ -32,24 +32,21 @@ namespace DSAandCprojectWPF
         // space and enter for making undo work
         private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            int caretIndex = inputTextBox.CaretIndex + 1;
+            int caretIndex = inputTextBox.CaretIndex;
 
             if (e.Key == Key.Enter)
             {
                 // Save the current text state before making changes
                 textStack.Push(inputTextBox.Text);
 
-                // Move the cursor to the end of the text
-                inputTextBox.CaretIndex = inputTextBox.Text.Length;
+                // Insert a new line character at the current caret index
+                inputTextBox.Text = inputTextBox.Text.Insert(caretIndex, Environment.NewLine);
 
-                // Add a new line character
-                inputTextBox.Text += Environment.NewLine;
+                // Move the caret to the next line
+                inputTextBox.CaretIndex = caretIndex + Environment.NewLine.Length;
 
-                // Move the cursor to the end of the new line
-                inputTextBox.CaretIndex = inputTextBox.Text.Length;
-
-                // Scroll to the end of the text box
-                inputTextBox.ScrollToEnd();
+                // Scroll to the caret position
+                inputTextBox.ScrollToVerticalOffset(inputTextBox.VerticalOffset + inputTextBox.FontSize);
 
                 // Prevent further processing by other event handlers
                 e.Handled = true;
@@ -69,12 +66,13 @@ namespace DSAandCprojectWPF
                 inputTextBox.Text = inputTextBox.Text;
 
                 // Restore the caret index
-                inputTextBox.CaretIndex = caretIndex;
+                inputTextBox.CaretIndex = caretIndex + 1;
 
                 // Prevent further processing by other event handlers
                 e.Handled = true;
             }
         }
+
 
 
         // Updates InputTextBox
