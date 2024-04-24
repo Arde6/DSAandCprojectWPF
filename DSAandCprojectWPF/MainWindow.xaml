@@ -1,14 +1,290 @@
 ﻿<Window x:Class="DSAandCprojectWPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Text Editor" Height="450" Width="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="37*"/>
-            <ColumnDefinition Width="3*"/>
-        </Grid.ColumnDefinitions>
-        <!-- TextBlock to display text -->
-        <TextBox x:Name="inputTextBox" TextWrapping="Wrap" VerticalAlignment="Top" Margin="25,39,25,0" Height="385" Width="750" KeyDown="InputTextBox_KeyDown" Grid.ColumnSpan="2"/>
-        <Button Name="undoButton" Content="Undo" HorizontalAlignment="Left" Margin="360,14,0,0" VerticalAlignment="Top" Click="UndoButton_Click"/>
-    </Grid>
+        Title="Text Editor" Height="500" Width="900"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent">
+    <Border CornerRadius="10" BorderBrush="#FF14144A" BorderThickness="2" Padding="3" Background="#FF191958"  MouseLeftButtonDown="dragWindow">
+
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Simple Text Editor" 
+                           FontWeight="Medium"
+                           FontSize="14"
+                           Foreground="#f0f0f0" 
+                           Grid.Column="1" 
+                           Grid.ColumnSpan="3"
+                           VerticalAlignment="Center" 
+                           HorizontalAlignment="Center"/>
+
+                <Button Name="exitButton" 
+                        Content="X" 
+                        FontWeight="Medium"
+                        FontSize="14"
+                        Grid.Column="20"
+                        Grid.ColumnSpan="2"
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" 
+                        Click="exitButton_Click"
+                        Foreground="#f0f0f0">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#FF14144A"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#FFFF3F3F"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Width="40" Height="20"
+                                    CornerRadius="6"
+                                    Background="{TemplateBinding Background}">
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Name="minimizeButton" 
+                        Content="–" 
+                        FontWeight="Medium"
+                        FontSize="14"
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Center" 
+                        Click="minimizeButton_Click"  
+                        Grid.ColumnSpan="2"
+                        Foreground="#f0f0f0" 
+                        Grid.Column="19">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#FF14144A"/>
+                            <Setter Property="Cursor" Value="Hand"/>
+
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#FFF1B737"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Width="40" Height="20"
+                                    CornerRadius="6"
+                                    Background="{TemplateBinding Background}">
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+            </Grid>
+            <TextBox x:Name="inputTextBox" 
+                     TextWrapping="Wrap" 
+                     VerticalAlignment="Top" 
+                     Margin="10,30,10,0"
+                     Height="425" 
+                     PreviewKeyDown="InputTextBox_PreviewKeyDown"
+                     Grid.ColumnSpan="2" 
+                     Grid.Row="1" 
+                     Background="#f0f0f0"/>
+
+            <Button Name="undoButton" 
+                    Content="Undo" 
+                    FontWeight="Medium"
+                    FontSize="14"
+                    HorizontalAlignment="Left" 
+                    Margin="419,6,0,0" 
+                    VerticalAlignment="Top" 
+                    Click="UndoButton_Click"  
+                    Grid.ColumnSpan="2" 
+                    Grid.Row="1"
+                    Foreground="#f0f0f0">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF9912"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFD700"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Width="62" Height="20"
+                                CornerRadius="6"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <TextBox Name ="serachInput"  
+                     HorizontalAlignment="Left"
+                     Margin="253,5,0,0" 
+                     TextWrapping="Wrap"
+                     VerticalAlignment="Top" 
+                     Width="120" Height="20" 
+                     Grid.Column="1" 
+                     Grid.Row="1" 
+                     Background="#f0f0f0"/>
+
+            <Button Name="serachButton" 
+                    Content="Search" 
+                    Foreground="#f0f0f0"
+                    FontSize="14"
+                    FontWeight="Medium"
+                    HorizontalAlignment="Left"
+                    Margin="378,5,0,0" 
+                    VerticalAlignment="Top" 
+                    Click="SerachClick" 
+                    Grid.Column="1" 
+                    Grid.Row="1" >
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF9912"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFD700"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Width="62" Height="20"
+                                CornerRadius="6"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Button Name="nextButton" 
+            Content="↓" 
+            Foreground="#f0f0f0"
+            FontSize="14"
+            FontWeight="Medium"
+            HorizontalAlignment="Left"
+            Margin="228,5,0,0" 
+            VerticalAlignment="Top" 
+            Click="NextButton_Click" 
+            Grid.Column="1" 
+            Grid.Row="1" >
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF9912"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFD700"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Width="20" Height="20"
+                        CornerRadius="6"
+                        Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"
+                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Button Name="prevButton" 
+                    Content="↑" 
+                    Foreground="#f0f0f0"
+                    FontSize="14"
+                    FontWeight="Medium"
+                    HorizontalAlignment="Left"
+                    Margin="203,5,0,0" 
+                    VerticalAlignment="Top" 
+                    Click="PreviousButton_Click" 
+                    Grid.Column="1" 
+                     Grid.Row="1" >
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF9912"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFD700"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Width="20" Height="20"
+                                CornerRadius="6"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+        </Grid>
+    </Border>
 </Window>
