@@ -59,10 +59,22 @@ namespace DSAandCprojectWPF
                     string[] lines = contextRange.Text.Split('\n');
                     foreach (string line in lines)
                     {
-                        if (line.TrimStart().StartsWith("//"))
+                        if (line.Contains("//"))
                         {
-                            // Color the whole line
-                            contextRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
+                            // Find the index where '//' starts
+                            int index = line.IndexOf("//");
+
+                            // Get the start position of '//' in the line
+                            TextPointer commentStart = currentPointer.GetPositionAtOffset(index, LogicalDirection.Forward);
+
+                            // Get the end position of the line
+                            TextPointer commentEnd = currentPointer.GetPositionAtOffset(line.Length, LogicalDirection.Forward);
+
+                            // Create a new text range from the start of '//' to the end of the line
+                            TextRange commentRange = new TextRange(commentStart, commentEnd);
+
+                            // Color the rest of the line
+                            commentRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
                         }
                         else if (line.Contains("/*") && line.Contains("*/"))
                         {
