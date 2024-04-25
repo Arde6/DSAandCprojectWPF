@@ -15,6 +15,7 @@ namespace DSAandCprojectWPF
     using System.Collections;
     using System.Collections.Generic;
     using System.Reflection;
+    using System.Text.RegularExpressions;
     using System.Xml.Serialization;
 
     public partial class MainWindow : Window
@@ -32,60 +33,77 @@ namespace DSAandCprojectWPF
         // space and enter for making undo work
         private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            int caretIndex = inputTextBox.CaretIndex;
-
-            if (e.Key == Key.Enter)
-            {
-                // Save the current text state before making changes
-                textStack.Push(inputTextBox.Text);
-
-                // Insert a new line character at the current caret index
-                inputTextBox.Text = inputTextBox.Text.Insert(caretIndex, Environment.NewLine);
-
-                // Move the caret to the next line
-                inputTextBox.CaretIndex = caretIndex + Environment.NewLine.Length;
-
-                // Scroll to the caret position
-                inputTextBox.ScrollToVerticalOffset(inputTextBox.VerticalOffset + inputTextBox.FontSize);
-
-                // Prevent further processing by other event handlers
-                e.Handled = true;
-            }
-            if (e.Key == Key.Space)
-            {
-                // Save the current text state before making changes
-                textStack.Push(inputTextBox.Text);
-
-                // Move the cursor to the end of the text
-                inputTextBox.CaretIndex = inputTextBox.Text.Length;
-
-                // Add a space character to the text content
-                inputTextBox.Text += " ";
-
-                // Explicitly set the Text property of the TextBox
-                inputTextBox.Text = inputTextBox.Text;
-
-                // Restore the caret index
-                inputTextBox.CaretIndex = caretIndex + 1;
-
-                // Prevent further processing by other event handlers
-                e.Handled = true;
-            }
+            // Save the current text state before making changes
+            textStack.Push(new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd).Text);
         }
 
 
-
         // Updates InputTextBox
-        private void UpdateDisplay()
+        private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            StringBuilder sb = new StringBuilder();
-            DoublyLinkedListNode<string> current = text.head;
-            while (current != null)
+            // Remove the TextChanged event handler
+            inputTextBox.TextChanged -= InputTextBox_TextChanged;
+
+            string keywords = @"\b(auto|double|int|struct|break|else|long|switch|case|enum|register|typedef|char|extern|return|union|const|float|short|unsigned|continue|for|signed|void|default|goto|sizeof|volatile|do|if|static|while)\b";
+            Regex keywordRegex = new Regex(keywords);
+
+            TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
+            TextPointer currentPointer = textRange.Start.GetInsertionPosition(LogicalDirection.Forward);
+
+            while (currentPointer != null)
             {
-                sb.Append(current.Data);
-                current = current.Next;
+                TextPointer nextPointer = currentPointer.GetNextContextPosition(LogicalDirection.Forward);
+                if (nextPointer != null)
+                {
+                    TextRange contextRange = new TextRange(currentPointer, nextPointer);
+                    string[] lines = contextRange.Text.Split('\n');
+                    foreach (string line in lines)
+                    {
+                        if (line.TrimStart().StartsWith("//"))
+                        {
+                            // Color the whole line
+                            contextRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
+                        }
+                        else if (line.Contains("/*") && line.Contains("*/"))
+                        {
+                            // Color everything between /* and */
+                            int start = line.IndexOf("/*");
+                            int end = line.IndexOf("*/") + 2;
+                            TextPointer commentStart = currentPointer.GetPositionAtOffset(start, LogicalDirection.Forward);
+                            TextPointer commentEnd = commentStart.GetPositionAtOffset(end - start, LogicalDirection.Forward);
+                            TextRange commentRange = new TextRange(commentStart, commentEnd);
+                            commentRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
+                        }
+                        else
+                        {
+                            string[] words = line.Split(' ');
+                            foreach (string word in words)
+                            {
+                                if (keywordRegex.IsMatch(word))
+                                {
+                                    int index = line.IndexOf(word);
+                                    TextPointer wordStart = currentPointer.GetPositionAtOffset(index, LogicalDirection.Forward);
+                                    TextPointer wordEnd = wordStart.GetPositionAtOffset(word.Length, LogicalDirection.Forward);
+                                    TextRange wordRange = new TextRange(wordStart, wordEnd);
+                                    wordRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Blue);
+                                }
+                                else
+                                {
+                                    int index = line.IndexOf(word);
+                                    TextPointer wordStart = currentPointer.GetPositionAtOffset(index, LogicalDirection.Forward);
+                                    TextPointer wordEnd = wordStart.GetPositionAtOffset(word.Length, LogicalDirection.Forward);
+                                    TextRange wordRange = new TextRange(wordStart, wordEnd);
+                                    wordRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+                                }
+                            }
+                        }
+                    }
+                }
+                currentPointer = nextPointer;
             }
-            inputTextBox.Text = sb.ToString();
+
+            // Add the TextChanged event handler back
+            inputTextBox.TextChanged += InputTextBox_TextChanged;
         }
 
 
@@ -93,11 +111,15 @@ namespace DSAandCprojectWPF
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
 
-            // Restore the previous text state
-            inputTextBox.Text = textStack.Pop();
+                // Restore the previous text state
+                string previousText = textStack.Pop();
 
-            // Set the caret index to the end of the restored text
-            inputTextBox.CaretIndex = inputTextBox.Text.Length;
+                // Set the text content of the RichTextBox
+                TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
+                textRange.Text = previousText;
+
+                // Set the caret index to the end of the restored text
+                inputTextBox.CaretPosition = inputTextBox.Document.ContentEnd;
         }
 
         private void SerachClick(object sender, RoutedEventArgs e)
@@ -145,11 +167,14 @@ namespace DSAandCprojectWPF
 
         private void editorFind(string query)
         {
-            if (query == null || query.Length == 0) return;
+            if (query == null || query.Length == 0 || inputTextBox == null) return;
 
-            Trie trie = BuildTrie(inputTextBox.Text);
+            TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
+            string text = textRange.Text;
 
-            occurrences = FindAllOccurrences(inputTextBox.Text, query);
+            Trie trie = BuildTrie(text);
+
+            occurrences = FindAllOccurrences(text, query);
             if (occurrences.Count > 0)
             {
                 currentOccurrenceIndex = 0;
@@ -167,13 +192,60 @@ namespace DSAandCprojectWPF
             if (currentOccurrenceIndex >= 0 && currentOccurrenceIndex < occurrences.Count)
             {
                 int index = occurrences[currentOccurrenceIndex];
-                inputTextBox.Select(index, query.Length);
-                // Highlight the found text by changing the background color
-                inputTextBox.SelectionBrush = Brushes.Yellow;
-                inputTextBox.Focus();
-                // Scroll to the occurrence
-                inputTextBox.ScrollToLine(inputTextBox.GetLineIndexFromCharacterIndex(index));
+                TextPointer start = inputTextBox.Document.ContentStart.GetPositionAtOffset(index);
+                TextPointer end = inputTextBox.Document.ContentStart.GetPositionAtOffset(index + query.Length);
+
+                if (start != null && end != null)
+                {
+                    TextRange range = new TextRange(start, end);
+                    range.ApplyPropertyValue(TextElement.BackgroundProperty, Brushes.Yellow);
+
+                    // Calculate the line number based on the index
+                    int lineIndex = GetLineIndexFromPosition(inputTextBox.Document.ContentStart, start);
+                    double verticalOffset = 0;
+
+                    if (lineIndex >= 0)
+                    {
+                        // Get the line corresponding to the index
+                        var line = GetVisualChild<Paragraph>(inputTextBox, lineIndex);
+                        // Calculate the vertical offset based on the line's position
+                        verticalOffset = line.Margin.Top + line.Margin.Bottom;
+                    }
+
+                    // Scroll to the calculated vertical offset
+                    inputTextBox.ScrollToVerticalOffset(verticalOffset);
+                }
             }
+        }
+
+        private int GetLineIndexFromPosition(TextPointer start, TextPointer position)
+        {
+            int lineIndex = 0;
+            while (start.CompareTo(position) < 0)
+            {
+                if (start.GetLineStartPosition(1) == null)
+                    break;
+
+                start = start.GetLineStartPosition(1);
+                lineIndex++;
+            }
+            return lineIndex;
+        }
+
+        private T GetVisualChild<T>(DependencyObject parent, int index) where T : DependencyObject
+        {
+            int count = 0;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild)
+                {
+                    if (count == index)
+                        return typedChild;
+                    count++;
+                }
+            }
+            return null;
         }
 
         private List<int> FindAllOccurrences(string text, string query)
@@ -333,7 +405,7 @@ namespace DSAandCprojectWPF
 
             private T[] stack;
 
-            public Stack(int size = 10)
+            public Stack(int size = 200)
             {
                 this.size = size;
                 stack = new T[size];
@@ -381,6 +453,48 @@ namespace DSAandCprojectWPF
                 return stack[top];
             }
 
+        }
+
+
+
+        private void ApplySyntaxHighlighting()
+        {
+            // Get the text from the RichTextBox
+            string text = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd).Text;
+
+            // Define regex patterns for syntax highlighting
+            Dictionary<string, SolidColorBrush> patterns = new Dictionary<string, SolidColorBrush>
+            {
+                { @"//.*$", Brushes.Green }, // Single-line comments
+                { @"(/\*.*?\*/)|(/\*.*)", Brushes.Green }, // Multi-line comments
+                { @"\b(class|void|int|string|public|private)\b", Brushes.Blue }, // Keywords
+                { @"\b(true|false|null)\b", Brushes.DarkOrange }, // Constants
+                { @"""[^""\\]*(?:\\.[^""\\]*)*""", Brushes.Red }, // Strings
+                { @"'.*?'", Brushes.Red }, // Characters
+                { @"\b[A-Za-z_]\w*\b", Brushes.Black } // Identifiers
+            };
+
+            // Apply formatting to matches
+            foreach (var pattern in patterns)
+            {
+                Regex regex = new Regex(pattern.Key, RegexOptions.IgnoreCase);
+                foreach (Match match in regex.Matches(text))
+                {
+                    ApplyFormatting(match.Index, match.Length, pattern.Value);
+                }
+            }
+        }
+
+        private void ApplyFormatting(int startIndex, int length, SolidColorBrush color)
+        {
+            TextPointer start = inputTextBox.Document.ContentStart.GetPositionAtOffset(startIndex);
+            TextPointer end = inputTextBox.Document.ContentStart.GetPositionAtOffset(startIndex + length);
+
+            if (start != null && end != null)
+            {
+                TextRange range = new TextRange(start, end);
+                range.ApplyPropertyValue(TextElement.ForegroundProperty, color);
+            }
         }
 
     }

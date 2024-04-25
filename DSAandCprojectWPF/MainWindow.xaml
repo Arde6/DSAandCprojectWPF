@@ -124,15 +124,21 @@
                 </Button>
 
             </Grid>
-            <TextBox x:Name="inputTextBox" 
-                     TextWrapping="Wrap" 
+            <RichTextBox x:Name="inputTextBox" 
                      VerticalAlignment="Top" 
                      Margin="10,30,10,0"
                      Height="425" 
                      PreviewKeyDown="InputTextBox_PreviewKeyDown"
+                     TextChanged="InputTextBox_TextChanged"
                      Grid.ColumnSpan="2" 
                      Grid.Row="1" 
-                     Background="#f0f0f0"/>
+                     Background="#f0f0f0">
+                <RichTextBox.Resources>
+                    <Style TargetType="Paragraph">
+                        <Setter Property="LineHeight" Value="1"/>
+                    </Style>
+                </RichTextBox.Resources>
+            </RichTextBox>
 
             <Button Name="undoButton" 
                     Content="Undo" 
