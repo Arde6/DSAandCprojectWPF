@@ -14,6 +14,7 @@ namespace DSAandCprojectWPF
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Printing;
     using System.Reflection;
     using System.Text.RegularExpressions;
     using System.Xml.Serialization;
@@ -23,6 +24,8 @@ namespace DSAandCprojectWPF
         private DoublyLinkedList<string> text = new DoublyLinkedList<string>();
         private Stack<string> textStack = new Stack<string>();
         private string allText = "";
+        private bool isSyntaxHighlightingEnabled = false;
+
 
         public MainWindow()
         {
@@ -41,13 +44,20 @@ namespace DSAandCprojectWPF
         // Updates InputTextBox
         private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
+
+            if (!isSyntaxHighlightingEnabled)
+            {
+                textRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+                return;
+            }
+
             // Remove the TextChanged event handler
             inputTextBox.TextChanged -= InputTextBox_TextChanged;
 
             string keywords = @"\b(auto|double|int|struct|break|else|long|switch|case|enum|register|typedef|char|extern|return|union|const|float|short|unsigned|continue|for|signed|void|default|goto|sizeof|volatile|do|if|static|while)\b";
             Regex keywordRegex = new Regex(keywords);
 
-            TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
             TextPointer currentPointer = textRange.Start.GetInsertionPosition(LogicalDirection.Forward);
 
             while (currentPointer != null)
@@ -133,6 +143,19 @@ namespace DSAandCprojectWPF
                 // Set the caret index to the end of the restored text
                 inputTextBox.CaretPosition = inputTextBox.Document.ContentEnd;
         }
+
+        private void SyntaxHighlightingCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            // Enable syntax highlighting
+            isSyntaxHighlightingEnabled = true;
+        }
+
+        private void SyntaxHighlightingCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Disable syntax highlighting
+            isSyntaxHighlightingEnabled = false;
+        }
+
 
         private void SerachClick(object sender, RoutedEventArgs e)
         {
@@ -465,48 +488,6 @@ namespace DSAandCprojectWPF
                 return stack[top];
             }
 
-        }
-
-
-
-        private void ApplySyntaxHighlighting()
-        {
-            // Get the text from the RichTextBox
-            string text = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd).Text;
-
-            // Define regex patterns for syntax highlighting
-            Dictionary<string, SolidColorBrush> patterns = new Dictionary<string, SolidColorBrush>
-            {
-                { @"//.*$", Brushes.Green }, // Single-line comments
-                { @"(/\*.*?\*/)|(/\*.*)", Brushes.Green }, // Multi-line comments
-                { @"\b(class|void|int|string|public|private)\b", Brushes.Blue }, // Keywords
-                { @"\b(true|false|null)\b", Brushes.DarkOrange }, // Constants
-                { @"""[^""\\]*(?:\\.[^""\\]*)*""", Brushes.Red }, // Strings
-                { @"'.*?'", Brushes.Red }, // Characters
-                { @"\b[A-Za-z_]\w*\b", Brushes.Black } // Identifiers
-            };
-
-            // Apply formatting to matches
-            foreach (var pattern in patterns)
-            {
-                Regex regex = new Regex(pattern.Key, RegexOptions.IgnoreCase);
-                foreach (Match match in regex.Matches(text))
-                {
-                    ApplyFormatting(match.Index, match.Length, pattern.Value);
-                }
-            }
-        }
-
-        private void ApplyFormatting(int startIndex, int length, SolidColorBrush color)
-        {
-            TextPointer start = inputTextBox.Document.ContentStart.GetPositionAtOffset(startIndex);
-            TextPointer end = inputTextBox.Document.ContentStart.GetPositionAtOffset(startIndex + length);
-
-            if (start != null && end != null)
-            {
-                TextRange range = new TextRange(start, end);
-                range.ApplyPropertyValue(TextElement.ForegroundProperty, color);
-            }
         }
 
     }

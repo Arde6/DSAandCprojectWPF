@@ -290,6 +290,17 @@
                     </ControlTemplate>
                 </Button.Template>
             </Button>
+            
+            <CheckBox Grid.Column="1" 
+                      Content="Syntax Highlighting" 
+                      HorizontalAlignment="Left" 
+                      Margin="59,8,0,0" 
+                      Grid.Row="1" 
+                      VerticalAlignment="Top"
+                      Foreground="#f0f0f0"
+                      Background="#f0f0f0"
+                      Checked="SyntaxHighlightingCheckBox_Checked" 
+                      Unchecked="SyntaxHighlightingCheckBox_Unchecked"/>
 
         </Grid>
     </Border>
