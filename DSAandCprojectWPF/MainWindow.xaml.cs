@@ -32,8 +32,8 @@ namespace DSAandCprojectWPF
             InitializeComponent();
         }
 
-        // KeyDown for InputTextBox
-        // space and enter for making undo work
+        // This exists pretty much because it used to be necessary to make undo work,
+        // but not necessarily needed any more, but I am still using it to push changes to undo
         private void InputTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // Save the current text state before making changes
@@ -41,11 +41,17 @@ namespace DSAandCprojectWPF
         }
 
 
-        // Updates InputTextBox
+        // When writing text to inputbox it updates the syntax coloring when enabled in ui
+        // otherwise just paints everything black to avoid weird thigs from happening with colors when
+        // disabling syntax colors while writing
         private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Takes the whole text as the range
+            // Maybe could give a performance increase if it onlyt selected the current line
+            // Don't know a better way to change the whole text tho
             TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
 
+            // Disables syntax coloring
             if (!isSyntaxHighlightingEnabled)
             {
                 textRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
@@ -53,8 +59,10 @@ namespace DSAandCprojectWPF
             }
 
             // Remove the TextChanged event handler
+            // not exactly sure why this is needed
             inputTextBox.TextChanged -= InputTextBox_TextChanged;
 
+            // key words that get highlighted
             string keywords = @"\b(auto|double|int|struct|break|else|long|switch|case|enum|register|typedef|char|extern|return|union|const|float|short|unsigned|continue|for|signed|void|default|goto|sizeof|volatile|do|if|static|while)\b";
             Regex keywordRegex = new Regex(keywords);
 
@@ -69,6 +77,7 @@ namespace DSAandCprojectWPF
                     string[] lines = contextRange.Text.Split('\n');
                     foreach (string line in lines)
                     {
+                        // Logic behind '//'
                         if (line.Contains("//"))
                         {
                             // Find the index where '//' starts
@@ -86,6 +95,7 @@ namespace DSAandCprojectWPF
                             // Color the rest of the line
                             commentRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
                         }
+                        // Logic behind '/* */'
                         else if (line.Contains("/*") && line.Contains("*/"))
                         {
                             // Color everything between /* and */
@@ -96,6 +106,7 @@ namespace DSAandCprojectWPF
                             TextRange commentRange = new TextRange(commentStart, commentEnd);
                             commentRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
                         }
+                        // Logic behinde keyword coloring. Get's all the words and when a match happens colors it blue
                         else
                         {
                             string[] words = line.Split(' ');
@@ -156,7 +167,6 @@ namespace DSAandCprojectWPF
             isSyntaxHighlightingEnabled = false;
         }
 
-
         private void SerachClick(object sender, RoutedEventArgs e)
         {
             editorFind(serachInput.Text);
@@ -177,7 +187,7 @@ namespace DSAandCprojectWPF
             this.DragMove();
         }
 
-        private void NextButton_Click(object sender, RoutedEventArgs e)
+        private void NextButton_Click(object sender, RoutedEventArgs e) // Next serach result
         {
             if (occurrences.Count > 0)
             {
@@ -186,7 +196,7 @@ namespace DSAandCprojectWPF
             }
         }
 
-        private void PreviousButton_Click(object sender, RoutedEventArgs e)
+        private void PreviousButton_Click(object sender, RoutedEventArgs e) // Previous serach result
         {
             if (occurrences.Count > 0)
             {
@@ -200,8 +210,9 @@ namespace DSAandCprojectWPF
         private List<int> occurrences;
         private int currentOccurrenceIndex = -1;
 
-        private void editorFind(string query)
+        private void editorFind(string query) // Makes a trie for word finding and uses it with other functions to find and highlight occurences
         {
+            // skips if there's no text
             if (query == null || query.Length == 0 || inputTextBox == null) return;
 
             TextRange textRange = new TextRange(inputTextBox.Document.ContentStart, inputTextBox.Document.ContentEnd);
@@ -222,7 +233,7 @@ namespace DSAandCprojectWPF
             }
         }
 
-        private void HighlightCurrentOccurrence(string query)
+        private void HighlightCurrentOccurrence(string query) // Highlight's found occurences with yellow
         {
             if (currentOccurrenceIndex >= 0 && currentOccurrenceIndex < occurrences.Count)
             {
@@ -306,6 +317,7 @@ namespace DSAandCprojectWPF
             return trie;
         }
 
+        // Trie class for highlight/serach funciton
         public class TrieNode
         {
             public Dictionary<char, TrieNode> Children { get; } = new Dictionary<char, TrieNode>();
